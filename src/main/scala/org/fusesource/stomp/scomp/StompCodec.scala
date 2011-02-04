@@ -46,6 +46,8 @@ object StompCodec {
     }
     os.write(NEWLINE)
     frame.content.writeTo(os)
+    os.write(NULL)
+    os.write(NEWLINE)
 
     os.toBuffer
   }

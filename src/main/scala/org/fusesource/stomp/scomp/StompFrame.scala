@@ -34,6 +34,12 @@ case class StompFrame(action:AsciiBuffer, headers:HeaderMap=Nil, content:StompCo
     action.length + 1 + headerSize + 1 + content.length
   }
 
+  def send(out:OutputStream) {
+     println("sending " + ascii(StompCodec.encode(this)))
+     StompCodec.encode(this).writeTo(out)
+     out.flush
+  }
+
 }
 
 /**

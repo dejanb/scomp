@@ -30,7 +30,12 @@ class StompTest extends FunSuite with ShouldMatchers {
 
   test("Stomp codec") {
     val frame = new StompFrame(ascii("SEND"), List((ascii("destination"), ascii("/queue/test"))), new BufferContent(ascii("Test")))
-    StompCodec.encode(frame).writeTo(System.out)
+    println(ascii(StompCodec.encode(frame)))
+  }
+
+  test("Stomp connect") {
+    val client = new StompClient
+    client.connect("localhost", 61613)
   }
 
 }
