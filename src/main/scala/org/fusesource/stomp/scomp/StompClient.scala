@@ -21,12 +21,17 @@ import java.io._
 import org.fusesource.hawtbuf.Buffer
 import _root_.org.fusesource.hawtbuf.{ByteArrayOutputStream => BAOS}
 import Buffer._
+import Stomp._
 
 class StompClient {
   var socket: Socket = new Socket
   var out: OutputStream = null
   var in: InputStream = null
   val bufferSize = 64 * 1204
+
+  var open = false
+  var connected = false
+  var sessionId = DEFAULT_SESSION_ID
 
   def connect(host: String, port: Int, user: String = null, password: String = null) {
     // open socket
@@ -41,7 +46,19 @@ class StompClient {
     //TODO add headers; username/pass and stuff
     connectFrame.send(out)
     val connect = receive
+    if (connect.action == CONNECTED) {
+       connected = true
+       sessionId = connect.getHeader(SESSION).getOrElse(DEFAULT_SESSION_ID)
+    } else {
+      reset
+      throw new Exception("expected " + CONNECTED + " but received " + connect);
+    }
 
+  }
+
+  def reset() = {
+    connected = false
+    sessionId = DEFAULT_SESSION_ID
   }
 
   def receive(): StompFrame = {

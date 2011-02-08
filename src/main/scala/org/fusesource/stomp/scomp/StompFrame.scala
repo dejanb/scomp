@@ -40,6 +40,17 @@ case class StompFrame(action:AsciiBuffer, headers:HeaderMap=Nil, content:StompCo
      out.flush
   }
 
+  def getHeader(name:AsciiBuffer):Option[AsciiBuffer] = {
+    val i = headers.iterator
+    while( i.hasNext ) {
+      val entry = i.next
+      if( entry._1 == name ) {
+        return Some(entry._2)
+      }
+    }
+    None
+  }
+
 }
 
 /**
@@ -192,6 +203,7 @@ object Stomp {
   val V1_0 = ascii("1.0")
   val V1_1 = ascii("1.1")
   val DEFAULT_HEART_BEAT = ascii("0,0")
+  val DEFAULT_SESSION_ID = ascii("-1")
 
   val SUPPORTED_PROTOCOL_VERSIONS = List(V1_1, V1_0)
 

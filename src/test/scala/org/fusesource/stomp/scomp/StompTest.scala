@@ -36,6 +36,7 @@ class StompTest extends FunSuite with ShouldMatchers {
   test("Stomp connect") {
     val client = new StompClient
     client.connect("localhost", 61613)
+    println(client.connected + " " + client.sessionId)
   }
 
 }
