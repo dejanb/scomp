@@ -22,7 +22,7 @@ import Stomp._
 import Buffer._
 
 
-case class StompFrame(action:AsciiBuffer, headers:HeaderMap=Nil, content:StompContent=NilContent) {
+case class StompFrame(action:AsciiBuffer, var headers:HeaderMap=Nil, content:StompContent=NilContent) {
 
   def size:Int = {
 

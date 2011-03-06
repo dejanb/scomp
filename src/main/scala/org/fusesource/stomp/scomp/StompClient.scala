@@ -56,10 +56,28 @@ class StompClient {
 
   }
 
-  def reset() = {
-    connected = false
-    sessionId = DEFAULT_SESSION_ID
+  def disconnect {
+    val disconnectFrame = new StompFrame(Stomp.DISCONNECT)
+    disconnectFrame.send(out)
+    socket.close
+    reset
   }
+
+  // send methods
+
+  def send(frame: StompFrame) {
+    frame.send(out)
+  }
+
+  def send(destination: String, text: String, persistent: Boolean = false) {
+    val frame = new StompFrame(Stomp.SEND, List((ascii("destination"), ascii(destination))), new BufferContent(ascii(text)));
+    if (persistent) {
+      frame.headers ::= (Stomp.PERSISTENT, ascii("true"));
+    }
+    frame.send(out)
+  }
+
+  // receive methods
 
   def receive(): StompFrame = {
     var start = true;
@@ -77,6 +95,11 @@ class StompClient {
       c = in.read()
     }
     throw new EOFException()
+  }
+
+  def reset() = {
+    connected = false
+    sessionId = DEFAULT_SESSION_ID
   }
 
 }

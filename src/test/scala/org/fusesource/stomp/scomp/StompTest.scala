@@ -22,7 +22,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.fusesource.hawtbuf.Buffer
 import Buffer._
-import Stomp._
 
 
 @RunWith(classOf[JUnitRunner])
@@ -37,6 +36,15 @@ class StompTest extends FunSuite with ShouldMatchers {
     val client = new StompClient
     client.connect("localhost", 61613)
     println(client.connected + " " + client.sessionId)
+    client.disconnect
+  }
+
+  test("Stomp send") {
+    val client = new StompClient
+    client.connect("localhost", 61613)
+    client.send("/queue/test", "test message", true)
+    client.disconnect
+
   }
 
 }
