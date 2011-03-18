@@ -16,35 +16,50 @@
 package org.fusesource.stomp.scomp
 
 import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.fusesource.hawtbuf.Buffer
 import Buffer._
-
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FunSuite}
+import org.apache.activemq.apollo.broker.{BrokerFactory, Broker}
+import org.apache.activemq.apollo.util.ServiceControl
 
 @RunWith(classOf[JUnitRunner])
-class StompTest extends FunSuite with ShouldMatchers {
+class StompTest extends FunSuite with ShouldMatchers with BeforeAndAfterAll {
+
+  var broker: Broker = null
+  var port = 61613
 
 
-  test("Stomp codec") {
-    val frame = new StompFrame(ascii("SEND"), List((ascii("destination"), ascii("/queue/test"))), new BufferContent(ascii("Test")))
-    println(ascii(StompCodec.encode(frame)))
+  override protected def beforeAll() = {
+    try {
+      broker = BrokerFactory.createBroker("xml:classpath:apollo-stomp.xml")
+      ServiceControl.start(broker, "Starting broker")
+    }
+    catch {
+      case e:Throwable => e.printStackTrace
+    }
   }
 
-  test("Stomp connect") {
-    val client = new StompClient
-    client.connect("localhost", 61613)
-    println(client.connected + " " + client.sessionId)
-    client.disconnect
+  override protected def afterAll() = {
+    broker.stop
   }
 
-  test("Stomp send") {
+  test("Stomp send/receive") {
     val client = new StompClient
-    client.connect("localhost", 61613)
+    client.connect("localhost", port)
+    client.connected should be(true)
+    client.sessionId.toString should not be (Stomp.DEFAULT_SESSION_ID.toString)
+
+    val sub = client.subscribe("/queue/test")
+
     client.send("/queue/test", "test message", true)
-    client.disconnect
 
+    val message = sub.receive(1000)
+    message should not be null
+    message.content.utf8.toString should be ("test message")
+
+    client.disconnect
   }
 
 }

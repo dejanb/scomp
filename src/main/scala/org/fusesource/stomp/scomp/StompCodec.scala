@@ -52,7 +52,6 @@ object StompCodec {
   }
 
   def decode(buffer: Buffer): StompFrame = {
-
     def read_line = {
       val pos = buffer.indexOf('\n'.toByte)
       if (pos < 0) {

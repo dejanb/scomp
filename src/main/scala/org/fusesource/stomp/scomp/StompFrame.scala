@@ -34,7 +34,6 @@ case class StompFrame(action:AsciiBuffer, var headers:HeaderMap=Nil, content:Sto
   }
 
   def send(out:OutputStream) {
-     println("sending " + ascii(StompCodec.encode(this)))
      StompCodec.encode(this).writeTo(out)
      out.flush
   }
@@ -66,6 +65,7 @@ trait StompContent {
 
   def retain = {}
   def release = {}
+
 }
 
 /**

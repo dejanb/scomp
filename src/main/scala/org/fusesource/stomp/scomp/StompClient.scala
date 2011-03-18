@@ -15,16 +15,13 @@
  */
 package org.fusesource.stomp.scomp
 
-import java.net.{InetSocketAddress, Socket}
-import java.io._
 import org.fusesource.hawtbuf.Buffer
-import _root_.org.fusesource.hawtbuf.{ByteArrayOutputStream => BAOS}
 import Buffer._
 import Stomp._
 import java.util.UUID
-import java.util.concurrent.{TimeUnit, LinkedBlockingQueue, BlockingQueue}
+import java.util.concurrent.{TimeUnit, LinkedBlockingQueue}
 
-class StompClient {
+class StompClient extends FrameListener {
   val bufferSize = 64 * 1204
 
   var open = false
@@ -32,9 +29,7 @@ class StompClient {
   var sessionId = DEFAULT_SESSION_ID
   var transport: StompTransport = _
 
-  val queue = new LinkedBlockingQueue[StompFrame]()
-
-  val subscriptions = Map[String, StompSubscription]()
+  var subscriptions = Map[String, StompSubscription]()
 
   def connect(host: String, port: Int, user: String = null, password: String = null) = {
     transport = new StompTransport(this)
@@ -88,24 +83,20 @@ class StompClient {
     );
     send(frame)
     val sub = new StompSubscription(id)
-    subscriptions(id) = sub
+    subscriptions += id -> sub
     sub
   }
 
-  //
-
-  def onStompFrame(frame: StompFrame) = {
-    queue.offer(frame, 1, TimeUnit.SECONDS)
-  }
-
-  // receive methods
-
-  def receive(timeout: Int = -1): StompFrame = {
-    if (timeout < 0) {
-       return queue.take
-    } else {
-      return queue.poll(timeout, TimeUnit.MILLISECONDS)
+  override def onStompFrame(frame: StompFrame) = {
+    if (frame.action == Stomp.MESSAGE) {
+      val id = frame.getHeader(Stomp.SUBSCRIPTION).get.toString
+      if (subscriptions.contains(id)) {
+        subscriptions(id).onStompFrame(frame)
+      } else {
+        super.onStompFrame(frame)
+      }
     }
+    super.onStompFrame(frame)
   }
 
   def reset() = {

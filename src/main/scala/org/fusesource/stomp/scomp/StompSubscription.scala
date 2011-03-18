@@ -15,6 +15,27 @@
  */
 package org.fusesource.stomp.scomp
 
-class StompSubscription(id: String) {
+import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
+
+trait FrameListener {
+
+  val queue = new LinkedBlockingQueue[StompFrame]()
+
+  def onStompFrame(frame: StompFrame) = {
+    queue.offer(frame, 1, TimeUnit.SECONDS)
+  }
+
+  def receive(timeout: Int = -1): StompFrame = {
+    if (timeout < 0) {
+       return queue.take
+    } else {
+       return queue.poll(timeout, TimeUnit.MILLISECONDS)
+    }
+  }
 
 }
+
+class StompSubscription(id: String) extends FrameListener {
+
+}
+

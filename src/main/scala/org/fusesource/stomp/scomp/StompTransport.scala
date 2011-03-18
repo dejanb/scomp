@@ -27,7 +27,7 @@ import org.fusesource.hawtbuf.Buffer
 import Buffer._
 
 
-class StompTransport(client: StompClient) {
+class StompTransport(client: StompClient) extends Logging {
 
   protected var channel: SocketChannel = _
   protected var queue = createQueue("Stomp Transport")
@@ -42,9 +42,9 @@ class StompTransport(client: StompClient) {
     val source: DispatchSource = createSource(channel, SelectionKey.OP_CONNECT, queue)
 
     def finishConnect = {
-      println("connected")
       if (channel != null && !channel.isConnected) {
         if (channel.finishConnect) {
+            info("Successfully connected to " + host + ":" + port)
           source.release
           readSource = createSource(channel, SelectionKey.OP_READ, queue)
           readSource.setEventHandler(^{
@@ -71,9 +71,8 @@ class StompTransport(client: StompClient) {
 
   }
 
-  var frameStart = true;
-
-  def readFrames = {
+  def readFrames: Unit = {
+    var frameStart = true
     val buffer = new BAOS()
     val bytesRead = channel.read(readBuffer);
     while (bytesRead != -1) {
@@ -81,9 +80,10 @@ class StompTransport(client: StompClient) {
       while (readBuffer.hasRemaining) {
         val c = readBuffer.get
         if (c == 0) {
-          println("received " + ascii(buffer.toBuffer))
+          debug("Received:\n" +  ascii(buffer.toBuffer))
           dispatch(StompCodec.decode(buffer.toBuffer))
-          frameStart = true
+          readBuffer.compact
+          return
         }
         if (!frameStart || c != Stomp.NEWLINE) {
           frameStart = false
@@ -112,7 +112,7 @@ class StompTransport(client: StompClient) {
 
   def send(frame: StompFrame): Unit = {
      val buffer = StompCodec.encode(frame)
-     println("sending " + ascii(buffer))
+     debug("Sending:\n" +  ascii(buffer))
      channel.write(ByteBuffer.wrap(buffer.toByteArray))
   }
 
