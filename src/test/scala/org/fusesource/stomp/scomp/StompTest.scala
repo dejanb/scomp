@@ -57,14 +57,14 @@ class StompTest extends FunSuite with ShouldMatchers with BeforeAndAfterAll {
 
 
     for (i <- 1 to msgNum) {
-      client.send("/queue/test", "test message", true)
+      client.send("/queue/test", "test message " + i, true)
     }
 
 
     for (i <- 1 to msgNum) {
       val message = sub.receive(1000)
       message should not be null
-      message.content.utf8.toString should be ("test message")
+      message.content.utf8.toString should be ("test message " + i)
     }
 
     client.disconnect
@@ -81,15 +81,22 @@ class StompTest extends FunSuite with ShouldMatchers with BeforeAndAfterAll {
 
     Thread.sleep(1000)
 
-    client.send("/topic/test", "a message",  false)
+    val msgNum = 20;
 
-    val msg1 = sub1.receive(1000)
-    msg1 should not be null
-    msg1.content.utf8.toString should be ("a message")
+    for (i <- 1 to msgNum) {
+      client.send("/topic/test", "a message " + i,  false)
+    }
 
-    val msg2 = sub2.receive(1000)
-    msg2 should not be null
-    msg2.content.utf8.toString should be ("a message")
+
+    for (i <- 1 to msgNum) {
+      val msg1 = sub1.receive(1000)
+      msg1 should not be null
+      msg1.content.utf8.toString should be("a message " + i)
+
+      val msg2 = sub2.receive(1000)
+      msg2 should not be null
+      msg2.content.utf8.toString should be("a message " + i)
+    }
 
     client.disconnect
   }
