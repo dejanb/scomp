@@ -45,7 +45,7 @@ class StompTransport(client: StompClient) extends Logging {
       if (channel != null && !channel.isConnected) {
         if (channel.finishConnect) {
             info("Successfully connected to " + host + ":" + port)
-          source.release
+          source.cancel
           readSource = createSource(channel, SelectionKey.OP_READ, queue)
           readSource.setEventHandler(^{
             readFrames
@@ -73,7 +73,7 @@ class StompTransport(client: StompClient) extends Logging {
 
   def readFrames: Unit = {
     var frameStart = true
-    val buffer = new BAOS()
+    var buffer = new BAOS()
     val bytesRead = channel.read(readBuffer);
     while (bytesRead != -1) {
       readBuffer.flip
@@ -82,15 +82,15 @@ class StompTransport(client: StompClient) extends Logging {
         if (c == 0) {
           debug("Received:\n" +  ascii(buffer.toBuffer))
           dispatch(StompCodec.decode(buffer.toBuffer))
-          readBuffer.compact
-          return
-        }
-        if (!frameStart || c != Stomp.NEWLINE) {
+          buffer = new BAOS()
+          frameStart = true
+        } else if (!frameStart || c != Stomp.NEWLINE) {
           frameStart = false
           buffer.write(c)
         }
       }
       readBuffer.clear
+      return
     }
   }
 
@@ -100,7 +100,7 @@ class StompTransport(client: StompClient) extends Logging {
 
   def stop() = {
     if (readSource != null) {
-       readSource.release
+       readSource.cancel
        readSource = null
     }
 
