@@ -34,6 +34,7 @@ class StompTransport(client: StompClient) extends Logging {
 
   protected val readBuffer = ByteBuffer.allocate(64 * 1024)
   protected var readSource: DispatchSource = _
+  protected var writeSource: DispatchSource = _
   protected var connected = false
 
   def init(host: String, port: Int) {
@@ -51,6 +52,10 @@ class StompTransport(client: StompClient) extends Logging {
             readFrames
           })
           readSource.resume
+          writeSource = createSource(channel, SelectionKey.OP_WRITE, queue)
+          writeSource.setEventHandler(^{
+            flush
+          })
           connected = true
         } else {
           throw new IOException("Connect timeout!")
@@ -110,10 +115,31 @@ class StompTransport(client: StompClient) extends Logging {
     }
   }
 
+   var pendingWrite:ByteBuffer = null
+
   def send(frame: StompFrame): Unit = {
      val buffer = StompCodec.encode(frame)
      debug("Sending:\n" +  ascii(buffer))
-     channel.write(ByteBuffer.wrap(buffer.toByteArray))
+     if (pendingWrite == null) {
+        pendingWrite = ByteBuffer.wrap(buffer.toByteArray)
+     } else {
+        val merged = new BAOS
+        merged.write(pendingWrite.array)
+        merged.write(buffer.toByteArray)
+        pendingWrite = ByteBuffer.wrap(merged.toByteArray)
+     }
+     flush
+
+  }
+
+  def flush(): Unit = {
+     if (pendingWrite != null) {
+       channel.write(pendingWrite)
+
+       if (!pendingWrite.hasRemaining) {
+         pendingWrite = null
+       }
+     }
   }
 
   def request(frame: StompFrame): StompFrame = {
