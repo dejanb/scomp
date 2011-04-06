@@ -174,6 +174,7 @@ object Stomp {
   val ACCEPT_VERSION = ascii("accept-version")
   val HOST = ascii("host")
   val HEART_BEAT = ascii("heart-beat")
+  val SERVER = ascii("server")
 
   val MESSAGE_HEADER = ascii("message")
   val VERSION = ascii("version")

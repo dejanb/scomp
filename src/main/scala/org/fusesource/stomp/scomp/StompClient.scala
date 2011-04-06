@@ -15,13 +15,14 @@
  */
 package org.fusesource.stomp.scomp
 
-import org.fusesource.hawtbuf.Buffer
-import Buffer._
 import Stomp._
 import java.util.UUID
 import java.util.concurrent.{TimeUnit, LinkedBlockingQueue}
+import org.fusesource.hawtbuf.{Buffer, AsciiBuffer}
+import Buffer._
+import collection.mutable.ListBuffer
 
-class StompClient extends FrameListener {
+class StompClient extends FrameListener with Logging {
   val bufferSize = 64 * 1204
 
   var open = false
@@ -37,22 +38,36 @@ class StompClient extends FrameListener {
     transport.start
 
     // send CONNECT frame
-    val connectFrame = new StompFrame(Stomp.CONNECT)
-    //TODO add headers; username/pass and stuff
+    var headers = new ListBuffer[(AsciiBuffer, AsciiBuffer)]
+    headers += ((ACCEPT_VERSION, V1_1))
+    headers += ((HOST, ascii(host)))
+    if (user != null) {
+      headers += ((LOGIN, ascii(user)))
+      headers += ((PASSCODE, ascii(password)))
+    }
+
+    val connectFrame = new StompFrame(STOMP, headers.toList)
+
     send(connectFrame)
     val connect = receive()
     if (connect.action == CONNECTED) {
+       val connectedVersion = connect.getHeader(VERSION).orNull
+       if (connectedVersion == null || connectedVersion != V1_1) {
+         disconnect
+         throw new Exception("Version " + connectedVersion + " " + VERSION + " of Stomp protocol is not supported")
+       }
        connected = true
        sessionId = connect.getHeader(SESSION).getOrElse(DEFAULT_SESSION_ID)
+      info("Successfully connected to " + connect.getHeader(SERVER).getOrElse(ascii(" unknown ")) + " at " + host + ":" + port)
     } else {
       reset
-      throw new Exception("expected " + CONNECTED + " but received " + connect);
+      throw new Exception("Expected " + CONNECTED + " but received " + connect);
     }
 
   }
 
   def disconnect = {
-    val disconnectFrame = new StompFrame(Stomp.DISCONNECT)
+    val disconnectFrame = new StompFrame(DISCONNECT)
     send(disconnectFrame)
     transport.stop
     reset
@@ -65,9 +80,9 @@ class StompClient extends FrameListener {
   }
 
   def send(destination: String, text: String, persistent: Boolean = false): Unit = {
-    val frame = new StompFrame(Stomp.SEND, List((ascii("destination"), ascii(destination))), new BufferContent(ascii(text)));
+    val frame = new StompFrame(SEND, List((ascii(DESTINATION), ascii(destination))), new BufferContent(ascii(text)));
     if (persistent) {
-      frame.headers ::= (Stomp.PERSISTENT, ascii("true"));
+      frame.headers ::= (PERSISTENT, ascii("true"));
     }
     send(frame)
   }
@@ -76,7 +91,7 @@ class StompClient extends FrameListener {
 
   def subscribe(destination: String) = {
     val id = generateId
-    val frame = new StompFrame(Stomp.SUBSCRIBE,
+    val frame = new StompFrame(SUBSCRIBE,
         List((ascii("destination"), ascii(destination)),
              (ascii("id"), ascii(id))
         )
@@ -88,8 +103,8 @@ class StompClient extends FrameListener {
   }
 
   override def onStompFrame(frame: StompFrame) = {
-    if (frame.action == Stomp.MESSAGE) {
-      val id = frame.getHeader(Stomp.SUBSCRIPTION).get.toString
+    if (frame.action == MESSAGE) {
+      val id = frame.getHeader(SUBSCRIPTION).get.toString
       if (subscriptions.contains(id)) {
         subscriptions(id).onStompFrame(frame)
       } else {
