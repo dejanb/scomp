@@ -45,7 +45,6 @@ class StompTest extends FunSuite with ShouldMatchers with BeforeAndAfterAll {
     broker.stop
   }
 
-
   test("Stomp queue send/receive") {
     val client = new StompClient
     client.connect("localhost", port)
@@ -98,6 +97,28 @@ class StompTest extends FunSuite with ShouldMatchers with BeforeAndAfterAll {
       msg2 should not be null
       msg2.content.utf8.toString should be("a message " + i)
     }
+
+    client.disconnect
+  }
+
+  test("Stomp async receive") {
+    val client = new StompClient
+    client.connect("localhost", port)
+    client.connected should be(true)
+    client.sessionId.toString should not be (Stomp.DEFAULT_SESSION_ID.toString)
+
+    val msgNum = 20;
+    var received = 0;
+
+    val sub = client.subscribe("/queue/asyncTest", Some((frame) => { received += 1 }))
+
+    for (i <- 1 to msgNum) {
+      client.send("/queue/asyncTest", "test message " + i, true)
+    }
+
+    Thread.sleep(3000);
+
+    received should be (msgNum);
 
     client.disconnect
   }

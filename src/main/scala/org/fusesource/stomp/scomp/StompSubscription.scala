@@ -20,9 +20,14 @@ import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 trait FrameListener {
 
   val queue = new LinkedBlockingQueue[StompFrame]()
+  var listener:Option[(StompFrame)  => Unit] = None
 
   def onStompFrame(frame: StompFrame) = {
-    queue.offer(frame, 1, TimeUnit.SECONDS)
+    if(listener.isDefined) {
+      listener.get.apply(frame)
+    } else {
+      queue.offer(frame, 1, TimeUnit.SECONDS)
+    }
   }
 
   def receive(timeout: Int = -1): StompFrame = {

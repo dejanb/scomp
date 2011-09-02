@@ -89,16 +89,17 @@ class StompClient extends FrameListener with Logging {
 
   // api
 
-  def subscribe(destination: String) = {
+  def subscribe(destination: String, listener: Option[(StompFrame) => Unit] = None) = {
     val id = generateId
     val frame = new StompFrame(SUBSCRIBE,
         List((ascii("destination"), ascii(destination)),
              (ascii("id"), ascii(id))
         )
     );
-    send(frame)
     val sub = new StompSubscription(id)
+    sub.listener = listener
     subscriptions += id -> sub
+    send(frame)
     sub
   }
 
