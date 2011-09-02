@@ -45,6 +45,7 @@ class StompTest extends FunSuite with ShouldMatchers with BeforeAndAfterAll {
     broker.stop
   }
 
+
   test("Stomp queue send/receive") {
     val client = new StompClient
     client.connect("localhost", port)
