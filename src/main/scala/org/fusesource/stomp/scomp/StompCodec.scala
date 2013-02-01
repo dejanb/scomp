@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,24 +16,22 @@
 package org.fusesource.stomp.scomp
 
 import java.io.IOException
-import Stomp._
 import org.fusesource.hawtbuf.{AsciiBuffer, Buffer, ByteArrayOutputStream}
 import collection.mutable.ListBuffer
+import org.apache.activemq.apollo.stomp.{BufferContent, StompFrame, Stomp}
+import Stomp._
 
 object StompCodec {
-  val READ_BUFFFER_SIZE = 1024 * 64;
-  val MAX_COMMAND_LENGTH = 1024;
-  val MAX_HEADER_LENGTH = 1024 * 10;
-  val MAX_HEADERS = 1000;
-  val MAX_DATA_LENGTH = 1024 * 1024 * 100;
+  val READ_BUFFFER_SIZE = 1024 * 64
+  val MAX_COMMAND_LENGTH = 1024
+  val MAX_HEADER_LENGTH = 1024 * 1
+  val MAX_HEADERS = 1000
+  val MAX_DATA_LENGTH = 1024 * 1024 * 100
   val TRIM = true
   val SIZE_CHECK = false
 
-
   def encode(frame: StompFrame): Buffer = {
-
     val os = new ByteArrayOutputStream(frame.size)
-
     frame.action.writeTo(os)
     os.write(NEWLINE)
 
@@ -47,7 +45,6 @@ object StompCodec {
     frame.content.writeTo(os)
     os.write(NULL)
     os.write(NEWLINE)
-
     os.toBuffer
   }
 
@@ -56,7 +53,8 @@ object StompCodec {
       val pos = buffer.indexOf('\n'.toByte)
       if (pos < 0) {
         throw new IOException("expected a new line")
-      } else {
+      }
+      else {
         val rc = buffer.slice(0, pos).ascii
         buffer.offset += (pos + 1)
         buffer.length -= (pos + 1)
@@ -64,10 +62,10 @@ object StompCodec {
       }
     }
 
-
     val action = if (TRIM) {
       read_line.trim().ascii
-    } else {
+    }
+    else {
       read_line
     }
 
@@ -75,7 +73,7 @@ object StompCodec {
 
     var line = read_line
     while (line.length() > 0) {
-      try {
+      try { {
         val seperatorIndex = line.indexOf(COLON)
         if (seperatorIndex < 0) {
           throw new IOException("Header line missing seperator.")
@@ -90,15 +88,16 @@ object StompCodec {
         }
         val entry = (name, value)
         headers += entry
-      } catch {
-        case e: Exception =>
-          e.printStackTrace
+      }
+      }
+      catch {
+        case e: Exception => {
+          e.printStackTrace()
           throw new IOException("Unable to parser header line [" + line + "]")
+        }
       }
       line = read_line
     }
-
-    new StompFrame(action, headers.toList, BufferContent(buffer))
+    StompFrame(action, headers.toList, BufferContent(buffer))
   }
-
 }

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,31 +16,35 @@
 package org.fusesource.stomp.scomp
 
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
+import org.apache.activemq.apollo.stomp.StompFrame
+import org.eintr.loglady.Logging
+import scala.Option
 
-trait FrameListener {
-
+trait FrameListener extends Logging {
   val queue = new LinkedBlockingQueue[StompFrame]()
-  var listener:Option[(StompFrame)  => Unit] = None
+  var listener: Option[(StompFrame) => Unit] = None
+
+  def addListener(l: Option[(StompFrame) => Unit]) {
+    listener = l
+  }
 
   def onStompFrame(frame: StompFrame) = {
-    if(listener.isDefined) {
+    if (listener.isDefined) {
       listener.get.apply(frame)
-    } else {
-      queue.offer(frame, 1, TimeUnit.SECONDS)
+    }
+    else {
+      queue.offer(frame)
     }
   }
 
   def receive(timeout: Int = -1): StompFrame = {
     if (timeout < 0) {
-       return queue.take
+      queue.take
     } else {
-       return queue.poll(timeout, TimeUnit.MILLISECONDS)
+      queue.poll(timeout, TimeUnit.MILLISECONDS)
     }
   }
-
 }
 
-class StompSubscription(id: String) extends FrameListener {
-
-}
+class StompSubscription(val id: String) extends FrameListener
 
