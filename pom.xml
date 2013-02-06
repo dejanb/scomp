@@ -19,7 +19,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.fusesource.stomp</groupId>
   <artifactId>scomp</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <inceptionYear>2011</inceptionYear>
   <properties>
     <junit.version>4.4</junit.version>
@@ -116,7 +116,9 @@
         <version>3.1.3</version>
         <configuration>
           <ccTestGoals>scalatest:test</ccTestGoals>
+<!--
           <recompileMode>incremental</recompileMode>
+-->
         </configuration>
         <executions>
           <execution>

@@ -19,7 +19,7 @@ import org.scalatest.matchers.ShouldMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
-import org.apache.activemq.apollo.broker.Broker
+import org.apache.activemq.apollo.broker.{BrokerFactory, Broker}
 import org.apache.activemq.apollo.util.ServiceControl
 import org.apache.activemq.apollo.dto.AcceptingConnectorDTO
 import org.apache.activemq.apollo.stomp.Stomp._
@@ -33,13 +33,15 @@ class StompTest extends FunSuite with ShouldMatchers with BeforeAndAfterAll {
   var port = 61613
 
   def createBroker = {
-    broker = new Broker()
-    broker.config.connectors.clear()
+    def broker_config_uri = "xml:classpath:apollo.xml"
+
+    BrokerFactory.createBroker(broker_config_uri)
+   /* broker.config.connectors.clear()
     val connector = new AcceptingConnectorDTO()
     connector.id = "tcp"
     connector.bind = "tcp://0.0.0.0:61613"
     broker.config.connectors.add(connector)
-    broker
+    broker  */
   }
 
   override protected def beforeAll() {
@@ -58,7 +60,7 @@ class StompTest extends FunSuite with ShouldMatchers with BeforeAndAfterAll {
 
   test("Stomp queue send/receive") {
     val client = new StompClient
-    client.connect("localhost", port)
+    client.connect("localhost", port,"admin","password")
     client.connected should be(right = true)
     client.sessionId.toString should not be ("")
     val msgNum = 20
