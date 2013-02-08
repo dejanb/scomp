@@ -16,11 +16,48 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.fusesource.stomp</groupId>
   <artifactId>scomp</artifactId>
-  <version>1.0</version>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>scomp</name>
+  <description>A Stomp Client written in Scala</description>
   <inceptionYear>2011</inceptionYear>
+  <url>http://fusesource.com</url>
+  <licenses>
+    <license>
+      <name>Apache v2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+    </license>
+  </licenses>
+  <organization>
+    <name>Fusesource</name>
+    <url>http://fusesource.com</url>
+  </organization>
+  <developers>
+    <developer>
+      <name>Dejan Bosanac</name>
+      <organization>Redhat</organization>
+      <url>http://sensatic.net</url>
+    </developer>
+    <developer>
+      <name>Ian de Beer</name>
+      <organization>zenAptix</organization>
+      <url>http://zenaptix.com</url>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:https://github.com:dejanb/scomp.git</connection>
+    <developerConnection>scm:git:https://github.com:dejanb/scomp.git</developerConnection>
+    <url>git@github.com:dejanb/scomp.git</url>
+  </scm>
+
   <properties>
     <junit.version>4.4</junit.version>
     <loglady.version>1.1.0</loglady.version>
@@ -29,14 +66,13 @@
     <hawtdispatch.version>1.11</hawtdispatch.version>
     <hawtbufproto.version>1.9</hawtbufproto.version>
   </properties>
-
   <repositories>
-    <repository>
+ <!--   <repository>
       <id>SonaTypeRepositoryreleases</id>
       <name>SonaType Repository (releases)</name>
       <url>https://oss.sonatype.org/content/repositories/releases/</url>
       <layout>default</layout>
-    </repository>
+    </repository>   -->
     <repository>
       <id>SonaTypeRepositorysnapshots</id>
       <name>SonaType Repository (snapshots)</name>
@@ -44,14 +80,14 @@
       <layout>default</layout>
     </repository>
   </repositories>
-
+<!--
   <pluginRepositories>
     <pluginRepository>
       <id>oss.sonatype.org</id>
       <name>Sonatype Repository</name>
       <url>https://oss.sonatype.org/content/repositories/releases</url>
     </pluginRepository>
-  </pluginRepositories>
+  </pluginRepositories>-->
 
   <dependencies>
     <dependency>
@@ -125,10 +161,88 @@
             <goals>
               <goal>compile</goal>
               <goal>testCompile</goal>
+              <goal>doc-jar</goal>
             </goals>
           </execution>
         </executions>
 
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.1</version>
+        <executions>
+          <execution>
+            <id>scaladoc</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classesDirectory>${project.build.directory}/site/scaladocs</classesDirectory>
+              <classifier>scaladoc</classifier>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <runOnlyAtExecutionRoot>true</runOnlyAtExecutionRoot>
+              <descriptorRefs>
+                <descriptorRef>
+                  source-release
+                </descriptorRef>
+              </descriptorRefs>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <!-- apache version not yet released -->
+            <!--<groupId>org.apache</groupId>-->
+            <groupId>org.apache.geronimo.genesis</groupId>
+            <artifactId>apache-source-release-assembly-descriptor</artifactId>
+            <!-- apache version not yet known -->
+            <version>2.0</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
