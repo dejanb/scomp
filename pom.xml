@@ -52,8 +52,8 @@
     </developer>
   </developers>
   <scm>
-    <connection>scm:git:https://github.com:dejanb/scomp.git</connection>
-    <developerConnection>scm:git:https://github.com:dejanb/scomp.git</developerConnection>
+    <connection>scm:git:https://github.com/dejanb/scomp.git</connection>
+    <developerConnection>scm:git:https://github.com/dejanb/scomp.git</developerConnection>
     <url>git@github.com:dejanb/scomp.git</url>
   </scm>
 
