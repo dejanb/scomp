@@ -66,12 +66,7 @@
     <hawtbufproto.version>1.9</hawtbufproto.version>
   </properties>
   <repositories>
- <!--   <repository>
-      <id>SonaTypeRepositoryreleases</id>
-      <name>SonaType Repository (releases)</name>
-      <url>https://oss.sonatype.org/content/repositories/releases/</url>
-      <layout>default</layout>
-    </repository>   -->
+
     <repository>
       <id>Apache Snapshots</id>
       <name>Apache Repository (snapshots)</name>
@@ -79,14 +74,6 @@
       <layout>default</layout>
     </repository>
   </repositories>
-<!--
-  <pluginRepositories>
-    <pluginRepository>
-      <id>oss.sonatype.org</id>
-      <name>Sonatype Repository</name>
-      <url>https://oss.sonatype.org/content/repositories/releases</url>
-    </pluginRepository>
-  </pluginRepositories>-->
 
   <dependencies>
     <dependency>
