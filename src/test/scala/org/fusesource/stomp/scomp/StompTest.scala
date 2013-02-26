@@ -21,7 +21,6 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import org.apache.activemq.apollo.broker.{BrokerFactory, Broker}
 import org.apache.activemq.apollo.util.ServiceControl
-import org.apache.activemq.apollo.dto.AcceptingConnectorDTO
 import org.apache.activemq.apollo.stomp.Stomp._
 import scala.Some
 import util.{Failure, Success}
