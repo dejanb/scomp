@@ -61,7 +61,7 @@
   <properties>
     <junit.version>4.4</junit.version>
     <loglady.version>1.1.0</loglady.version>
-    <apollo.version>99-trunk-SNAPSHOT</apollo.version>
+    <apollo.version>1.6</apollo.version>
     <scalatest.version>1.9.1</scalatest.version>
     <hawtdispatch.version>1.11</hawtdispatch.version>
     <hawtbufproto.version>1.9</hawtbufproto.version>
